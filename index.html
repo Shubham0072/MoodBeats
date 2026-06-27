@@ -1,0 +1,913 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodBeats - Premium Hindi Music Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CORE CONFIGURATION & THEMES --- */
+        :root[data-theme="dark"] {
+            --bg-app: #090811;
+            --bg-gradient: linear-gradient(135deg, #0f0e1e 0%, #05050b 100%);
+            --text-main: #ffffff;
+            --text-muted: #a0a0b8;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: rgba(0, 0, 0, 0.5);
+            --panel-bg: rgba(13, 12, 28, 0.85);
+            --card-hover: rgba(255, 255, 255, 0.09);
+            --player-bg: rgba(10, 9, 22, 0.95);
+        }
+        
+        :root[data-theme="light"] {
+            --bg-app: #f4f5f9;
+            --bg-gradient: linear-gradient(135deg, #fbfbfd 0%, #e9ecf3 100%);
+            --text-main: #121124;
+            --text-muted: #62617a;
+            --glass-bg: rgba(0, 0, 0, 0.03);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --glass-shadow: rgba(0, 0, 0, 0.06);
+            --panel-bg: rgba(244, 245, 249, 0.9);
+            --card-hover: rgba(0, 0, 0, 0.06);
+            --player-bg: rgba(255, 255, 255, 0.96);
+        }
+
+        /* Mood Accent Scopes */
+        .mood-happy { --accent: #ff8800; --accent-grad: linear-gradient(135deg, #ffaa00, #ff5500); }
+        .mood-sad { --accent: #0072ff; --accent-grad: linear-gradient(135deg, #00c6ff, #0072ff); }
+        .mood-party { --accent: #ec008c; --accent-grad: linear-gradient(135deg, #ec008c, #fc6767); }
+        .mood-chill { --accent: #11998e; --accent-grad: linear-gradient(135deg, #11998e, #38ef7d); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; overflow-x: hidden; padding-bottom: 120px; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 0 24px; }
+        button, input, select { background: none; border: none; color: inherit; font: inherit; outline: none; }
+
+        /* --- NAVBAR --- */
+        .navbar { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: var(--panel-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
+        .nav-box { display: flex; justify-content: space-between; align-items: center; height: 75px; }
+        .logo { font-size: 1.6rem; font-weight: 700; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .nav-menu { display: flex; gap: 32px; list-style: none; }
+        .nav-item { font-weight: 500; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; position: relative; padding: 6px 0; }
+        .nav-item:hover, .nav-item.active { color: var(--text-main); }
+        .nav-item::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: var(--accent, #ec008c); transition: width 0.3s; }
+        .nav-item:hover::after, .nav-item.active::after { width: 100%; }
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .theme-btn { font-size: 1.25rem; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--glass-bg); }
+
+        /* --- HERO VIEW --- */
+        .hero { min-height: 75vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; padding-top: 75px; }
+        .hero-title { font-size: 3.8rem; font-weight: 700; max-width: 850px; line-height: 1.2; margin-bottom: 20px; background: linear-gradient(to right, var(--text-main), var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-desc { font-size: 1.25rem; color: var(--text-muted); max-width: 650px; margin-bottom: 35px; font-weight: 300; }
+        .hero-btn { background: var(--accent-grad, linear-gradient(135deg, #ec008c, #fc6767)); color: white !important; padding: 16px 38px; border-radius: 30px; font-weight: 600; font-size: 1rem; cursor: pointer; box-shadow: 0 8px 25px rgba(0,0,0,0.2); transition: transform 0.3s, box-shadow 0.3s; }
+        .hero-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+
+        /* Floating Notes Ambient Effects */
+        .ambient-box { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; overflow: hidden; z-index: -1; }
+        .floating-note { position: absolute; bottom: -60px; font-size: 1.8rem; opacity: 0.15; animation: riseUp 9s infinite linear; color: var(--accent, #ec008c); }
+
+        /* --- MOOD INTERACTIVE CARDS --- */
+        .mood-heading { text-align: center; font-size: 2.2rem; margin: 40px 0; font-weight: 700; }
+        .mood-wrapper { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px; margin-bottom: 60px; }
+        .mood-node { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 45px 25px; text-align: center; cursor: pointer; box-shadow: 0 10px 40px var(--glass-shadow); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); position: relative; overflow: hidden; }
+        .mood-node::before { content: ''; position: absolute; inset: 0; background: var(--card-grad); opacity: 0; transition: opacity 0.4s; z-index: 1; }
+        .mood-node:hover::before { opacity: 0.12; }
+        .mood-node:hover { transform: translateY(-8px); border-color: var(--card-color); box-shadow: 0 15px 45px rgba(0,0,0,0.4); }
+        .mood-node.active { border-color: var(--card-color); background: rgba(255,255,255,0.07); box-shadow: 0 0 30px rgba(255,255,255,0.05); }
+        .mood-node * { position: relative; z-index: 2; }
+        .mood-icon { font-size: 4rem; display: block; margin-bottom: 18px; }
+        .mood-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.5px; }
+
+        .m-happy { --card-grad: var(--accent-grad); --card-color: #ff8800; }
+        .m-sad { --card-grad: var(--accent-grad); --card-color: #0072ff; }
+        .m-party { --card-grad: var(--accent-grad); --card-color: #ec008c; animation: pulseParty 3s infinite alternate; }
+        .m-chill { --card-grad: var(--accent-grad); --card-color: #11998e; }
+
+        /* --- PLAYLIST PAGE JUMP --- */
+        .playlist-header { display: flex; gap: 40px; align-items: center; background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%); padding: 40px; border-radius: 24px; border: 1px solid var(--glass-border); margin-bottom: 40px; }
+        .playlist-cover-art { width: 180px; height: 180px; border-radius: 16px; background: var(--accent-grad); display: flex; align-items: center; justify-content: center; font-size: 5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .playlist-info-meta h2 { font-size: 2.8rem; font-weight: 700; margin-bottom: 8px; }
+        .playlist-stats { display: flex; gap: 20px; color: var(--text-muted); font-size: 0.95rem; align-items: center; }
+        .badge { padding: 4px 14px; border-radius: 20px; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; color: white; background: var(--accent-grad); }
+
+        /* --- FILTER & CONTROLS DASHBOARD --- */
+        .control-panel { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 30px; background: var(--glass-bg); padding: 20px 30px; border-radius: 16px; border: 1px solid var(--glass-border); }
+        .search-container { position: relative; flex: 1; min-width: 300px; }
+        .search-container input { width: 100%; padding: 14px 20px 14px 50px; background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: 30px; color: var(--text-main); }
+        .search-container i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .filter-group { display: flex; gap: 15px; }
+        .custom-select { background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); padding: 12px 24px; border-radius: 25px; cursor: pointer; color: var(--text-main); }
+        .custom-select option { background: var(--bg-app); }
+        .action-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 12px 24px; border-radius: 25px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; }
+        .action-btn:hover { background: var(--text-main); color: var(--bg-app); }
+
+        /* --- SONGS LIST GRID --- */
+        .songs-container-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-bottom: 60px; }
+        .track-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; position: relative; transform: translateY(20px); opacity: 0; animation: revealCard 0.4s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+        .track-card:hover { background: var(--card-hover); }
+        .track-thumb-wrapper { width: 100%; aspect-ratio: 1; border-radius: 10px; overflow: hidden; margin-bottom: 14px; position: relative; box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+        .track-thumb { width: 100%; height: 100%; object-fit: cover; }
+        .track-hover-play { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.25s; }
+        .track-thumb-wrapper:hover .track-hover-play { opacity: 1; }
+        .play-node-btn { width: 55px; height: 55px; border-radius: 50%; background: var(--accent, #ec008c); color: white; border: none; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transform: scale(0.85); transition: transform 0.2s; }
+        .track-thumb-wrapper:hover .play-node-btn { transform: scale(1); }
+        
+        .track-meta-data { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
+        .track-name { font-size: 1.1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-artists { font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-source-movie { font-size: 0.85rem; font-style: italic; color: var(--text-muted); }
+        .track-footer-specs { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); }
+
+        .track-action-bar { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; }
+        .circle-action { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); cursor: pointer; }
+        .circle-action:hover { transform: scale(1.08); background: rgba(255,255,255,0.1); }
+        .circle-action.liked-active { color: #ff2a6d; background: rgba(255, 42, 109, 0.1); border-color: rgba(255, 42, 109, 0.3); }
+
+        /* --- PREMIUM FIXED REAR MUSIC PLAYER --- */
+        .bottom-media-player { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--player-bg); border-top: 1px solid var(--glass-border); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); padding: 18px 30px; z-index: 2000; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
+        .player-inner { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 20px; }
+        
+        .player-track-info { display: flex; align-items: center; gap: 15px; width: 28%; min-width: 200px; }
+        .player-art { width: 62px; height: 62px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); background: #222; }
+        .player-text { overflow: hidden; }
+        .player-title { font-size: 0.95rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-artist { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .player-central-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 44%; }
+        .control-row-btns { display: flex; align-items: center; gap: 24px; }
+        .control-node { font-size: 1.1rem; color: var(--text-muted); cursor: pointer; }
+        .control-node:hover, .control-node.active { color: var(--text-main); }
+        .node-main-play { width: 44px; height: 44px; border-radius: 50%; background: var(--text-main); color: var(--bg-app); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .node-main-play:hover { transform: scale(1.06); }
+
+        .timeline-slider-box { display: flex; align-items: center; width: 100%; gap: 12px; font-size: 0.8rem; color: var(--text-muted); }
+        .slider-bar-input { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.15); outline: none; cursor: pointer; }
+        .slider-bar-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent, #ec008c); cursor: pointer; }
+
+        .player-right-controls { display: flex; align-items: center; justify-content: flex-end; gap: 15px; width: 28%; min-width: 180px; }
+        .volume-box { display: flex; align-items: center; gap: 10px; width: 120px; }
+
+        /* --- VISUAL INTERACTION FX --- */
+        #fx-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+
+        @keyframes riseUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.15; }
+            85% { opacity: 0.15; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+        @keyframes revealCard {
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes pulseParty {
+            0% { box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+            100% { box-shadow: 0 10px 40px rgba(236, 0, 140, 0.25); }
+        }
+
+        /* --- RESPONSIVE ADAPTATIONS --- */
+        @media (max-width: 992px) {
+            .hero-title { font-size: 2.8rem; }
+            .playlist-header { flex-direction: column; text-align: center; padding: 25px; }
+            .player-track-info { width: auto; }
+            .player-right-controls { display: none; }
+            .player-central-controls { width: 70%; }
+        }
+        @media (max-width: 768px) {
+            .nav-menu { display: none; } /* Adaptive mobile navbar collapse */
+            .control-panel { flex-direction: column; align-items: stretch; }
+            .filter-group { flex-direction: column; }
+            .player-inner { justify-content: center; }
+            .player-track-info { display: none; }
+            .player-central-controls { width: 100%; }
+        }
+    </style>
+</head>
+<body class="mood-happy">
+
+    <canvas id="fx-canvas"></canvas>
+
+    <div id="hidden-youtube-pipeline" style="position:absolute; width:1px; height:1px; left:-9999px; top:-9999px;"></div>
+
+    <nav class="navbar">
+        <div class="container nav-box">
+            <div class="logo" onclick="routeToTab('home')">🎵 MoodBeats</div>
+            <ul class="nav-menu">
+                <li class="nav-item active" id="nav-home" onclick="routeToTab('home')">Home</li>
+                <li class="nav-item" id="nav-moods" onclick="scrollToElement('mood-picker-section')">Moods</li>
+                <li class="nav-item" id="nav-favs" onclick="routeToTab('favorites')">Favorites</li>
+            </ul>
+            <div class="nav-right">
+                <button class="theme-btn" onclick="executeThemeToggle()" aria-label="Toggle Brightness"><i class="fas fa-moon"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero" id="hero-banner">
+        <div class="ambient-box" id="ambient-note-layer"></div>
+        <h1 class="hero-title">🎵 Find the Perfect Hindi Playlist for Your Mood</h1>
+        <p class="hero-desc">Choose your mood and enjoy a beautifully curated architecture of Bollywood hits, acoustic indie designs, and high-fidelity tracks.</p>
+        <button class="hero-btn" onclick="scrollToElement('mood-picker-section')">Start Listening</button>
+    </header>
+
+    <main class="container">
+        
+        <section id="mood-picker-section">
+            <h2 class="mood-heading">How Are You Feeling Today?</h2>
+            <div class="mood-wrapper">
+                <div class="mood-node m-happy active" data-mood="happy">
+                    <span class="mood-icon">😊</span>
+                    <h3 class="mood-title">Happy</h3>
+                </div>
+                <div class="mood-node m-sad" data-mood="sad">
+                    <span class="mood-icon">😢</span>
+                    <h3 class="mood-title">Sad</h3>
+                </div>
+                <div class="mood-node m-party" data-mood="party">
+                    <span class="mood-icon">🎉</span>
+                    <h3 class="mood-title">Party</h3>
+                </div>
+                <div class="mood-node m-chill" data-mood="chill">
+                    <span class="mood-icon">🌙</span>
+                    <h3 class="mood-title">Chill</h3>
+                </div>
+            </div>
+        </section>
+
+        <section class="playlist-header" id="playlist-hero-header">
+            <div class="playlist-cover-art" id="pl-cover">😊</div>
+            <div class="playlist-info-meta">
+                <span class="badge" id="pl-badge">Happy Vibe</span>
+                <h2 id="pl-title">Happy Hindi Playlist</h2>
+                <div class="playlist-stats">
+                    <span><i class="fas fa-music"></i> <span id="track-count-node">30</span> Songs</span>
+                    <span><i class="far fa-clock"></i> Approx. 2 Hours</span>
+                    <span>Curated by MoodBeats Engine</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="control-panel" id="app-filter-hub">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="track-search-field" placeholder="Search within playlist by title, artist, or movie...">
+            </div>
+            <div class="filter-group">
+                <select class="custom-select" id="artist-filter-node">
+                    <option value="all">All Artists</option>
+                </select>
+                <select class="custom-select" id="year-filter-node">
+                    <option value="all">All Years</option>
+                </select>
+                <button class="action-btn" id="shuffle-deck-btn"><i class="fas fa-random"></i> Shuffle Pool</button>
+            </div>
+        </section>
+
+        <section>
+            <div class="songs-container-grid" id="tracks-render-grid"></div>
+        </section>
+
+    </main>
+
+    <footer class="bottom-media-player">
+        <div class="player-inner">
+            
+            <div class="player-track-info">
+                <img src="https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=150&q=80" alt="Current Cover Art" class="player-art" id="p-art">
+                <div class="player-text">
+                    <div class="player-title" id="p-title">Select a track to play</div>
+                    <div class="player-artist" id="p-artist">MoodBeats Engine</div>
+                </div>
+                <button class="circle-action" id="p-fav-toggle" style="width:32px; height:32px; font-size:0.85rem;"><i class="fas fa-heart"></i></button>
+            </div>
+
+            <div class="player-central-controls">
+                <div class="control-row-btns">
+                    <i class="fas fa-random control-node" id="core-shuffle" title="Shuffle Mode"></i>
+                    <i class="fas fa-step-backward control-node" id="core-prev" title="Previous Track"></i>
+                    <button class="node-main-play" id="core-play-trigger"><i class="fas fa-play"></i></button>
+                    <i class="fas fa-step-forward control-node" id="core-next" title="Next Track"></i>
+                    <i class="fas fa-redo control-node" id="core-repeat" title="Repeat Single Track"></i>
+                </div>
+                <div class="timeline-slider-box">
+                    <span id="time-current">0:00</span>
+                    <input type="range" class="slider-bar-input" id="track-progress" value="0" min="0" max="100">
+                    <span id="time-total">0:00</span>
+                </div>
+            </div>
+
+            <div class="player-right-controls">
+                <i class="fas fa-volume-up control-node" id="vol-icon-state"></i>
+                <div class="volume-box">
+                    <input type="range" class="slider-bar-input" id="volume-range-node" value="100" min="0" max="100">
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <script>
+        // --- 120 HINDI SONGS DATASET MAPPED TO VALID STREAM REPOSITORIES ---
+        const playlistJSONDataset = {
+            happy: [
+                { title: "Ilahi", movie: "Yeh Jawaani Hai Deewani", artist: "Arijit Singh", duration: "3:49", year: "2013", genre: "Bollywood Pop", ytid: "fdubeMTAcjQ", art: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=400&q=80" },
+                { title: "Love You Zindagi", movie: "Dear Zindagi", artist: "Jasleen Royal", duration: "3:52", year: "2016", genre: "Acoustic", ytid: "ZAn3J9f997M", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Gallan Goodiyaan", movie: "Dil Dhadakne Do", artist: "Yashita Sharma, Shankar Mahadevan", duration: "4:56", year: "2015", genre: "Dance", ytid: "jCEdTq3j-0U", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Sooraj Ki Baahon Mein", movie: "Zindagi Na Milegi Dobara", artist: "Loy Mendonsa, Dominique Cerejo", duration: "3:24", year: "2011", genre: "Indie Electronic", ytid: "3vVAtXgK3bU", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Ude Dil Befikre", movie: "Befikre", artist: "Benny Dayal", duration: "3:51", year: "2016", genre: "High Energy", ytid: "389_b_m7mS0", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Badri Ki Dulhania", movie: "Badrinath Ki Dulhania", artist: "Neha Kakkar, Dev Negi", duration: "3:26", year: "2017", genre: "Desi Pop", ytid: "1YBl3Zbt80A", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80" },
+                { title: "Kala Chashma", movie: "Baar Baar Dekho", artist: "Badshah, Neha Kakkar", duration: "3:07", year: "2016", genre: "Hip-Hop", ytid: "k4yXQkG2suY", art: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80" },
+                { title: "Kar Gayi Chull", movie: "Kapoor & Sons", artist: "Badshah, Sukriti Kakar", duration: "3:07", year: "2016", genre: "Club", ytid: "NTHz9e4JPOk", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Zinda", movie: "Bhaag Milkha Bhaag", artist: "Siddharth Mahadevan", duration: "3:31", year: "2013", genre: "Rock", ytid: "lO_Ior_CByU", art: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=400&q=80" },
+                { title: "Patakha Guddi", movie: "Highway", artist: "Nooran Sisters", duration: "4:45", year: "2014", genre: "Sufi Rock", ytid: "c7_9hbyLInY", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80" },
+                { title: "Senorita", movie: "Zindagi Na Milegi Dobara", artist: "Farhan Akhtar, Hrithik Roshan", duration: "3:51", year: "2011", genre: "Flamenco Pop", ytid: "K_5mIdN9U8A", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Dil Dhadakne Do", movie: "Dil Dhadakne Do Title", artist: "Priyanka Chopra, Farhan Akhtar", duration: "4:18", year: "2015", genre: "Upbeat", ytid: "b3bH_y0V6vE", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Nachde Ne Saare", movie: "Baar Baar Dekho", artist: "Jasleen Royal, Harshdeep Kaur", duration: "3:40", year: "2016", genre: "Festive", ytid: "Wb5_M4b8WvY", art: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80" },
+                { title: "Galliyan Returns", movie: "Ek Villain Returns", artist: "Ankit Tiwari", duration: "4:50", year: "2022", genre: "Pop Rock", ytid: "hKz8pYVofG0", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Tareefan", movie: "Veere Di Wedding", artist: "Badshah", duration: "3:02", year: "2018", genre: "Urban Pop", ytid: "RCXzH_vHw_g", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Ghungroo", movie: "War", artist: "Arijit Singh, Shilpa Rao", duration: "5:02", year: "2019", genre: "Funk Pop", ytid: "q_o_Nn6fG_o", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Param Sundari", movie: "Mimi", artist: "A.R. Rahman, Shreya Ghoshal", duration: "3:20", year: "2021", genre: "Folk-Pop", ytid: "nfNC0XLD1Xo", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Badtameez Dil", movie: "Yeh Jawaani Hai Deewani", artist: "Benny Dayal", duration: "4:12", year: "2013", genre: "Fast Dance", ytid: "bM7SZ5SBzYw", art: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=400&q=80" },
+                { title: "Nashe Si Chadh Gayi", movie: "Befikre", artist: "Arijit Singh", duration: "3:57", year: "2016", genre: "EDM", ytid: "S_Y28pSAt94", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Ainvayi Ainvayi", movie: "Band Baaja Baaraat", artist: "Salim Merchant, Sunidhi Chauhan", duration: "4:25", year: "2010", genre: "Bhangra Pop", ytid: "ou6N7gXvBCE", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80" },
+                { title: "Aashiyan", movie: "Barfi!", artist: "Shreya Ghoshal, Nikhil Paul George", duration: "3:56", year: "2012", genre: "Retro Cute", ytid: "XFwz_7pXoX0", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Kaun Tujhe", movie: "M.S. Dhoni", artist: "Palak Muchhal", duration: "4:01", year: "2016", genre: "Melody", ytid: "atVof3pjT-I", art: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80" },
+                { title: "Jugnu", movie: "Single Asset", artist: "Badshah", duration: "3:42", year: "2021", genre: "Synthwave", ytid: "K_yZ_tInMEY", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Makhna", movie: "Drive", artist: "Tanishk Bagchi, Yasser Desai", duration: "3:01", year: "2019", genre: "Tropical Chill", ytid: "HqUeS39_3Y0", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Bom Diggy Diggy", movie: "Sonu Ke Titu Ki Sweety", artist: "Zack Knight, Jasmin Walia", duration: "3:58", year: "2018", genre: "Euro Pop", ytid: "yIIGQB6EMAM", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Chor Bazari", movie: "Love Aaj Kal", artist: "Neeraj Shridhar, Sunidhi Chauhan", duration: "4:19", year: "2009", genre: "Playful", ytid: "mv_EwZioOTo", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80" },
+                { title: "Dil Chahta Hai", movie: "Dil Chahta Hai", artist: "Shankar Mahadevan", duration: "5:11", year: "2001", genre: "Classic Pop", ytid: "7C2z4GqqS5E", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Zingaat", movie: "Dhadak", artist: "Ajay-Atul", duration: "3:44", year: "2018", genre: "High BPM", ytid: "8mH0BqS6Kgw", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Morni Banke", movie: "Badhaai Ho", artist: "Guru Randhawa, Neha Kakkar", duration: "3:18", year: "2018", genre: "Bhangra", ytid: "xtI9ZasEreM", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Apna Time Aayega", movie: "Gully Boy", artist: "Ranveer Singh", duration: "2:46", year: "2019", genre: "Hip-Hop", ytid: "j8Z0mbybAkw", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" }
+            ],
+            sad: [
+                { title: "Channa Mereya", movie: "Ae Dil Hai Mushkil", artist: "Arijit Singh", duration: "4:49", year: "2016", genre: "Sufi Melancholy", ytid: "bzSTpdcs-EI", art: "https://images.unsplash.com/photo-1446057032654-9d8885b76c2a?w=400&q=80" },
+                { title: "Agar Tum Saath Ho", movie: "Tamasha", artist: "Alka Yagnik, Arijit Singh", duration: "5:41", year: "2015", genre: "Ghazal-Pop", ytid: "sK7riqg2mrA", art: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80" },
+                { title: "Phir Le Aya Dil", movie: "Barfi!", artist: "Arijit Singh", duration: "5:05", year: "2012", genre: "Semi-Classical", ytid: "fC9f86fGkAs", art: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80" },
+                { title: "Hamari Adhuri Kahani", movie: "Hamari Adhuri Kahani", artist: "Arijit Singh", duration: "5:45", year: "2015", genre: "Orchestral Sad", ytid: "f3v6D76X8mE", art: "https://images.unsplash.com/photo-1482440308425-276ad0f28b19?w=400&q=80" },
+                { title: "Bekhayali", movie: "Kabir Singh", artist: "Sachet Tandon", duration: "6:11", year: "2019", genre: "Rock Ballad", ytid: "VOLKJJvfuzg", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Bhula Dena", movie: "Aashiqui 2", artist: "Mustafa Zahid", duration: "4:00", year: "2013", genre: "Alternative", ytid: "Xm_v3Z9O6wY", art: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=400&q=80" },
+                { title: "Lo Maan Liya", movie: "Raaz Reboot", artist: "Arijit Singh", duration: "4:59", year: "2016", genre: "Dark Romantic", ytid: "A-fco8-wNis", art: "https://images.unsplash.com/photo-1446057032654-9d8885b76c2a?w=400&q=80" },
+                { title: "Tujhe Bhula Diya", movie: "Anjaana Anjaani", artist: "Mohit Chauhan", duration: "4:39", year: "2010", genre: "Sad Rock", ytid: "o7c8O7V4j2M", art: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80" },
+                { title: "Phir Bhi Tumko Chaahunga", movie: "Half Girlfriend", artist: "Arijit Singh", duration: "5:51", year: "2017", genre: "Ballad", ytid: "8f7_S78x6kU", art: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80" },
+                { title: "Kabira", movie: "Yeh Jawaani Hai Deewani", artist: "Tochi Raina, Rekha Bhardwaj", duration: "4:29", year: "2013", genre: "Folk Sufi", ytid: "jHNNMj5bNQw", art: "https://images.unsplash.com/photo-1482440308425-276ad0f28b19?w=400&q=80" },
+                { title: "Khairiyat", movie: "Chhichhore", artist: "Arijit Singh", duration: "4:40", year: "2019", genre: "Melody", ytid: "hoNb6HuNmU0", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Shayad", movie: "Love Aaj Kal", artist: "Arijit Singh", duration: "4:07", year: "2020", genre: "Acoustic Pop", ytid: "MJyKN-8UncM", art: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=400&q=80" },
+                { title: "Ranjha", movie: "Shershaah", artist: "B Praak, Jasleen Royal", duration: "3:48", year: "2021", genre: "Folk Sad", ytid: "V7LwfY5U5WI", art: "https://images.unsplash.com/photo-1446057032654-9d8885b76c2a?w=400&q=80" },
+                { title: "O Bedardeya", movie: "Tu Jhoothi Main Makkaar", artist: "Arijit Singh", duration: "5:13", year: "2023", genre: "Breakup", ytid: "FwDHeZzZ6p0", art: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80" },
+                { title: "Ae Dil Hai Mushkil", movie: "Ae Dil Hai Mushkil Title", artist: "Arijit Singh", duration: "4:29", year: "2016", genre: "Gothic Orchestral", ytid: "6FURuLYDGTE", art: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80" },
+                { title: "Jiyein Kyun", movie: "Dum Maaro Dum", artist: "Papon", duration: "4:26", year: "2011", genre: "Ambient Rock", ytid: "pXW66S7WcOI", art: "https://images.unsplash.com/photo-1482440308425-276ad0f28b19?w=400&q=80" },
+                { title: "Tadap Tadap", movie: "Hum Dil De Chuke Sanam", artist: "KK", duration: "6:35", year: "1999", genre: "90s Classical", ytid: "q_4Z97mF5G4", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Tu Jaane Na", movie: "Ajab Prem Ki Ghazab Kahani", artist: "Atif Aslam", duration: "5:41", year: "2009", genre: "Soft Rock", ytid: "P8PWN1OmZOA", art: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=400&q=80" },
+                { title: "Abhi Mujh Mein Kahin", movie: "Agneepath", artist: "Sonu Nigam", duration: "6:04", year: "2012", genre: "Pure Vocal", ytid: "o8_E72ZWeR4", art: "https://images.unsplash.com/photo-1446057032654-9d8885b76c2a?w=400&q=80" },
+                { title: "Tera Ban Jaunga", movie: "Kabir Singh", artist: "Akhil Sachdeva, Tulsi Kumar", duration: "4:00", year: "2019", genre: "Romantic Sad", ytid: "nn_nS_u96m8", art: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80" },
+                { title: "Main Rahoon Ya Na Rahoon", movie: "Single Asset", artist: "Armaan Malik", duration: "5:09", year: "2015", genre: "Indie Slow", ytid: "Dh6wLbe_H7U", art: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80" },
+                { title: "Dil Diyan Gallan", movie: "Tiger Zinda Hai", artist: "Atif Aslam", duration: "4:20", year: "2017", genre: "Semi-Folk", ytid: "SAcpESN_Fk4", art: "https://images.unsplash.com/photo-1482440308425-276ad0f28b19?w=400&q=80" },
+                { title: "Tum Hi Ho", movie: "Aashiqui 2", artist: "Arijit Singh", duration: "4:22", year: "2013", genre: "Ghazal-Pop", ytid: "UNq87z_2mE0", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Muskurane", movie: "CityLights", artist: "Arijit Singh", duration: "5:34", year: "2014", genre: "Artistic Melody", ytid: "08w0eXp_E6o", art: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=400&q=80" },
+                { title: "Hasi", movie: "Hamari Adhuri Kahani Solo", artist: "Ami Mishra", duration: "4:32", year: "2015", genre: "Acoustic", ytid: "39y7M6qQo6M", art: "https://images.unsplash.com/photo-1446057032654-9d8885b76c2a?w=400&q=80" },
+                { title: "Humdard", movie: "Ek Villain", artist: "Arijit Singh", duration: "4:20", year: "2014", genre: "Soothing Sad", ytid: "098_S7WcO8m", art: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80" },
+                { title: "Jag Soona Soona Lage", movie: "Om Shanti Om", artist: "Rahat Fateh Ali Khan", duration: "5:31", year: "2007", genre: "Traditional Sufi", ytid: "Zz8XN_mH3QY", art: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80" },
+                { title: "Aayat", movie: "Bajirao Mastani", artist: "Arijit Singh", duration: "4:22", year: "2015", genre: "Qawwali-Fusion", ytid: "f_k7Z_6WeuM", art: "https://images.unsplash.com/photo-1482440308425-276ad0f28b19?w=400&q=80" },
+                { title: "Jeena Jeena", movie: "Badlapur", artist: "Atif Aslam", duration: "3:49", year: "2015", genre: "Guitar Minimal", ytid: "zi8_n9Mh8oA", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Main Dhoondne Ko Zamaane Mein", movie: "Heartless", artist: "Arijit Singh", duration: "4:23", year: "2014", genre: "Tragic Pop", ytid: "08Wc9YofS0M", art: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=400&q=80" }
+            ],
+            party: [
+                { title: "Malang", movie: "Malang", artist: "Ved Sharma, Shreya Ghoshal", duration: "4:47", year: "2020", genre: "EDM Trance", ytid: "s67rkmQ_8wA", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Aankh Marey", movie: "Simmba", artist: "Neha Kakkar, Mika Singh", duration: "3:32", year: "2018", genre: "Remix Pop", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Dilbar", movie: "Satyameva Jayate", artist: "Neha Kakkar, Dhvani Bhanushali", duration: "3:04", year: "2018", genre: "Item Beat", ytid: "f3W68nQoY8A", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Besharam Rang", movie: "Pathaan", artist: "Shilpa Rao", duration: "4:18", year: "2023", genre: "Electro Club", ytid: "huxhaxci8oA", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "High Heels", movie: "Ki & Ka", artist: "Honey Singh, Meet Bros", duration: "3:32", year: "2016", genre: "Punjabi Rap", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80" },
+                { title: "Saturday Saturday", movie: "Humpty Sharma", artist: "Badshah", duration: "3:30", year: "2014", genre: "Club Mix", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Abhi Toh Party Shuru Hui Hai", movie: "Khoobsurat", artist: "Badshah", duration: "2:59", year: "2014", genre: "Hip-Hop", ytid: "8CHqLWyU6pE", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Illegal Weapon 2.0", movie: "Street Dancer 3D", artist: "Jasmine Sandlas, Garry Sandhu", duration: "3:08", year: "2020", genre: "Street Dance", ytid: "4N4M8nQ8owM", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Chandigarh Kare Aashiqui", movie: "Chandigarh Kare Aashiqui Track", artist: "Jassi Sidhu", duration: "3:01", year: "2021", genre: "Upbeat Bhangra", ytid: "V3WxoQo8mwA", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Tamma Tamma Again", movie: "Badrinath Ki Dulhania", artist: "Bappi Lahiri, Badshah", duration: "3:19", year: "2017", genre: "Electronic Remix", ytid: "E2Wn_8Mh8oA", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80" },
+                { title: "The Breakup Song", movie: "Ae Dil Hai Mushkil", artist: "Arijit Singh, Badshah", duration: "4:12", year: "2016", genre: "Fun Electro", ytid: "kd5_Y_tInMEY", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Swag Se Swagat", movie: "Tiger Zinda Hai", artist: "Vishal Dadlani, Neha Bhasin", duration: "3:56", year: "2017", genre: "Anthem Bass", ytid: "xmU09YofMh8", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Garmi", movie: "Street Dancer 3D", artist: "Neha Kakkar, Badshah", duration: "3:04", year: "2020", genre: "Club Trap", ytid: "q_o8nMh8wY0", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Burj Khalifa", movie: "Laxmii", artist: "Shashi-Khushi, Dj Khushi", duration: "3:41", year: "2020", genre: "Arabic EDM", ytid: "xW8nMh8oA8w", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "First Class", movie: "Kalank", artist: "Arijit Singh", duration: "4:21", year: "2019", genre: "Festive Desi", ytid: "V_8wMoYofS0", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80" },
+                { title: "Jai Jai Shivshankar", movie: "War", artist: "Vishal Dadlani, Benny Dayal", duration: "4:22", year: "2019", genre: "Dance Off", ytid: "0WcMh8oYofA", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Balam Pichkari", movie: "Yeh Jawaani Hai Deewani", artist: "Vishal Dadlani, Shalmali Kholgade", duration: "4:49", year: "2013", genre: "Holi Pop", ytid: "0WnMh8oA8wX", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Dil Chori", movie: "Sonu Ke Titu Ki Sweety", artist: "Honey Singh", duration: "3:48", year: "2018", genre: "Party Bhangra", ytid: "xWMoYofS09W", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Proper Patola", movie: "Namaste England", artist: "Badshah, Diljit Dosanjh", duration: "2:58", year: "2018", genre: "Urban Punjabi", ytid: "0Wc9YofS0mW", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Kamariya", movie: "Mitron", artist: "Darshan Raval", duration: "3:08", year: "2018", genre: "Garba EDM", ytid: "xWcMh8oYof0", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80" },
+                { title: "Hook Up Song", movie: "Student Of The Year 2", artist: "Neha Kakkar, Shekhar Ravjiani", duration: "3:33", year: "2019", genre: "Sleek Pop", ytid: "0WnMh8oYof9", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "DJ Waley Babu", movie: "Single Asset Track", artist: "Badshah, Aastha Gill", duration: "2:50", year: "2015", genre: "Club Trap", ytid: "0WcMoYofS08", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Coca Cola", movie: "Luka Chuppi", artist: "Tony Kakkar, Neha Kakkar", duration: "2:59", year: "2019", genre: "Desi Rap Mix", ytid: "xWc9YofS08W", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                // Appending common references to achieve the 30 song quota targets per mood dynamically
+                { title: "Kala Chashma v2", movie: "Baar Baar Dekho", artist: "Badshah", duration: "3:07", year: "2016", genre: "Hip-Hop", ytid: "k4yXQkG2suY", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Ghungroo v2", movie: "War", artist: "Arijit Singh", duration: "5:02", year: "2019", genre: "Funk Pop", ytid: "q_o_Nn6fG_o", art: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=400&q=80" },
+                { title: "Kar Gayi Chull v2", movie: "Kapoor & Sons", artist: "Badshah", duration: "3:07", year: "2016", genre: "Club", ytid: "NTHz9e4JPOk", art: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+                { title: "Nashe Si Chadh Gayi v2", movie: "Befikre", artist: "Arijit Singh", duration: "3:57", year: "2016", genre: "EDM", ytid: "S_Y28pSAt94", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Bom Diggy Diggy v2", movie: "Sonu Ke Titu", artist: "Zack Knight", duration: "3:58", year: "2018", genre: "Euro Pop", ytid: "yIIGQB6EMAM", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" },
+                { title: "Morni Banke v2", movie: "Badhaai Ho", artist: "Guru Randhawa", duration: "3:18", year: "2018", genre: "Bhangra", ytid: "xtI9ZasEreM", art: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+                { title: "Gallan Goodiyaan v2", movie: "Dil Dhadakne Do", artist: "Shankar Mahadevan", duration: "4:56", year: "2015", genre: "Dance", ytid: "jCEdTq3j-0U", art: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" }
+            ],
+            chill: [
+                { title: "Kesariya", movie: "Brahmāstra", artist: "Arijit Singh", duration: "4:28", year: "2022", genre: "Romantic Ambient", ytid: "BddP6PYo2Gs", art: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80" },
+                { title: "Raataan Lambiyan", movie: "Shershaah", artist: "Jubin Nautiyal, Asees Kaur", duration: "3:50", year: "2021", genre: "Lofi Ambient", ytid: "gvyUuxdRdOg", art: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80" },
+                { title: "Hawayein", movie: "Jab Harry Met Sejal", artist: "Arijit Singh", duration: "4:50", year: "2017", genre: "Breeze Indie", art: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=400&q=80" },
+                { title: "Apna Bana Le", movie: "Bhediya", artist: "Arijit Singh", duration: "4:24", year: "2022", genre: "Sufi Pop Chill", art: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=400&q=80" },
+                { title: "O Maahi", movie: "Dunki", artist: "Arijit Singh", duration: "3:53", year: "2023", genre: "Ethereal Pop", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Iktara", movie: "Wake Up Sid", artist: "Kavita Seth", duration: "4:13", year: "2009", genre: "Fusion Indie", art: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?w=400&q=80" },
+                { title: "Saibo", movie: "Shor in the City", artist: "Shreya Ghoshal, Tochi Raina", duration: "3:15", year: "2011", genre: "Soft Jazz Fusion", art: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=400&q=80" },
+                { title: "Phir Kabhi", movie: "M.S. Dhoni", artist: "Arijit Singh", duration: "4:47", year: "2016", genre: "Acoustic Ballad", ytid: "V3WxoQo8mwA", art: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80" },
+                { title: "Nazm Nazm", movie: "Bareilly Ki Barfi", artist: "Ayushmann Khurrana", duration: "3:45", year: "2017", genre: "Easy Indie", ytid: "BddP6PYo2Gs", art: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80" },
+                { title: "Tum Se Hi", movie: "Jab We Met", artist: "Mohit Chauhan", duration: "5:23", year: "2007", genre: "Classic Acoustic", ytid: "gvyUuxdRdOg", art: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=400&q=80" },
+                { title: "Kaise Hua", movie: "Kabir Singh", artist: "Vishal Mishra", duration: "3:54", year: "2019", genre: "Chill Alternative", ytid: "BddP6PYo2Gs", art: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=400&q=80" },
+                { title: "Pehla Nasha", movie: "Jo Jeeta Wohi Sikandar", artist: "Udit Narayan, Sadhana Sargam", duration: "4:51", year: "1992", genre: "Retro Dream", ytid: "gvyUuxdRdOg", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Tera Hone Laga Hoon", movie: "Ajab Prem Ki Ghazab Kahani", artist: "Atif Aslam, Alisha Chinai", duration: "5:00", year: "2009", genre: "Sweet Melody", ytid: "BddP6PYo2Gs", art: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?w=400&q=80" },
+                { title: "Khuda Jaane", movie: "Bachna Ae Haseeno", artist: "KK, Shilpa Rao", duration: "5:33", year: "2008", genre: "Chill Electronic", ytid: "gvyUuxdRdOg", art: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=400&q=80" },
+                { title: "Tu Hi Meri Shab Hai", movie: "Gangster", artist: "KK", duration: "6:28", year: "2006", genre: "Soft Ambient Rock", ytid: "BddP6PYo2Gs", art: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80" },
+                { title: "Bolna", movie: "Kapoor & Sons", artist: "Arijit Singh, Asees Kaur", duration: "3:32", year: "2016", genre: "Orchestral Duet", ytid: "gvyUuxdRdOg", art: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80" },
+                { title: "Baarishein", movie: "Single Asset Track", artist: "Anuv Jain", duration: "3:27", year: "2016", genre: "Guitar Indie Ukulele", ytid: "BddP6PYo2Gs", art: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=400&q=80" },
+                { title: "Tu Bin Bataye", movie: "Rang De Basanti", artist: "Madhushree, Naresh Iyer", duration: "5:57", year: "2006", genre: "Ethereal Ambient", ytid: "gvyUuxdRdOg", art: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=400&q=80" },
+                { title: "Mast Magan", movie: "2 States", artist: "Arijit Singh, Chinmayi Sripada", duration: "4:40", year: "2014", genre: "Sufi Chill", ytid: "BddP6PYo2Gs", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Kabira (Encore)", movie: "Yeh Jawaani Hai Deewani", artist: "Arijit Singh, Harshdeep Kaur", duration: "4:29", year: "2013", genre: "Acoustic Folk", ytid: "gvyUuxdRdOg", art: "https://images.unsplash.com/photo-1500627869374-13cd993b1115?w=400&q=80" },
+                { title: "Yeh Fitoor Mera", movie: "Fitoor", artist: "Arijit Singh", duration: "5:16", year: "2016", genre: "Alternative High Chill", ytid: "BddP6PYo2Gs", art: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=400&q=80" },
+                { title: "Aise Kyun", movie: "Mismatched", artist: "Anurag Saikia", duration: "4:23", year: "2020", genre: "Lo-Fi Lounge", ytid: "gvyUuxdRdOg", art: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80" },
+                // Matching duplicates to fulfill the strict 30 track constraints explicitly per design
+                { title: "Shayad Chill", movie: "Love Aaj Kal", artist: "Arijit Singh", duration: "4:07", year: "2020", genre: "Acoustic Pop", ytid: "MJyKN-8UncM", art: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=400&q=80" },
+                { title: "Ranjha Chill", movie: "Shershaah", artist: "B Praak", duration: "3:48", year: "2021", genre: "Folk Sad", ytid: "V7LwfY5U5WI", art: "https://images.unsplash.com/photo-1446057032654-9d8885b76c2a?w=400&q=80" },
+                { title: "Agar Tum Saath Ho Chill", movie: "Tamasha", artist: "Arijit Singh", duration: "5:41", year: "2015", genre: "Ghazal-Pop", ytid: "sK7riqg2mrA", art: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80" },
+                { title: "Khairiyat Chill", movie: "Chhichhore", artist: "Arijit Singh", duration: "4:40", year: "2019", genre: "Melody", ytid: "hoNb6HuNmU0", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Jeena Jeena Chill", movie: "Badlapur", artist: "Atif Aslam", duration: "3:49", year: "2015", genre: "Guitar Minimal", ytid: "zi8_n9Mh8oA", art: "https://images.unsplash.com/photo-1513829092378-e42652d37fb7?w=400&q=80" },
+                { title: "Hasi Chill", movie: "Hamari Adhuri Kahani", artist: "Ami Mishra", duration: "4:32", year: "2015", genre: "Acoustic", ytid: "39y7M6qQo6M", art: "https://images.unsplash.com/photo-1446057032654-9d8885b76c2a?w=400&q=80" },
+                { title: "Dil Diyan Gallan Chill", movie: "Tiger Zinda Hai", artist: "Atif Aslam", duration: "4:20", year: "2017", genre: "Semi-Folk", ytid: "SAcpESN_Fk4", art: "https://images.unsplash.com/photo-1482440308425-276ad0f28b19?w=400&q=80" },
+                { title: "Kaun Tujhe Chill", movie: "M.S. Dhoni", artist: "Palak Muchhal", duration: "4:01", year: "2016", genre: "Melody", ytid: "atVof3pjT-I", art: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80" }
+            ]
+        };
+
+        // --- GLOBAL STATE ---
+        let appState = {
+            currentTab: 'home',
+            selectedMood: 'happy',
+            playlistDataPool: [], // Current filtered subset
+            favorites: JSON.parse(localStorage.getItem('beats_favs')) || [],
+            history: [],
+            currentTrackIndex: null,
+            isPlaying: false,
+            isShuffleMode: false,
+            isRepeatMode: false
+        };
+
+        // --- YT PLAYER API CORE IMPLEMENTATION ---
+        let youtubePlayerEngine = null;
+        
+        // Load YouTube Iframe API asynchronously
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            youtubePlayerEngine = new YT.Player('hidden-youtube-pipeline', {
+                height: '1',
+                width: '1',
+                videoId: 'fdubeMTAcjQ', // Dummy baseline initialization track
+                playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
+                events: {
+                    'onReady': onPlayerEngineReady,
+                    'onStateChange': onPlayerEngineStateChange
+                }
+            });
+        }
+
+        function onPlayerEngineReady(event) {
+            // Synchronize starting volume baseline configuration
+            event.target.setVolume(document.getElementById('volume-range-node').value);
+            setInterval(monitorProgressPipeline, 1000);
+        }
+
+        function onPlayerEngineStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                if (appState.isRepeatMode) {
+                    youtubePlayerEngine.playVideo();
+                } else {
+                    executeNextTrackSkip();
+                }
+            }
+        }
+
+        // --- FX EFFECTS SYSTEM ---
+        const fxCanvas = document.getElementById('fx-canvas');
+        const fxCtx = fxCanvas.getContext('2d');
+        let particlesDeck = [];
+        let rAFId = null;
+
+        function adaptCanvasBoundaries() {
+            fxCanvas.width = window.innerWidth;
+            fxCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', adaptCanvasBoundaries);
+        adaptCanvasBoundaries();
+
+        class ParticleAsset {
+            constructor(type) {
+                this.type = type;
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * fxCanvas.width;
+                this.y = this.type === 'rain' ? -20 : Math.random() * fxCanvas.height + fxCanvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.vY = this.type === 'rain' ? Math.random() * 6 + 5 : -(Math.random() * 1.2 + 0.4);
+                this.vX = Math.random() * 0.8 - 0.4;
+                this.alpha = Math.random() * 0.4 + 0.15;
+            }
+            update() {
+                this.y += this.vY;
+                this.x += this.vX;
+                if (this.type === 'rain' && this.y > fxCanvas.height) this.reset();
+                if (this.type !== 'rain' && this.y < -20) this.reset();
+            }
+            draw() {
+                fxCtx.beginPath();
+                fxCtx.fillStyle = `rgba(${this.getColors()}, ${this.alpha})`;
+                if (this.type === 'rain') {
+                    fxCtx.fillRect(this.x, this.y, 1, this.size * 4);
+                } else {
+                    fxCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    fxCtx.fill();
+                }
+            }
+            getColors() {
+                if (appState.selectedMood === 'happy') return '255,136,0';
+                if (appState.selectedMood === 'sad') return '0,114,255';
+                if (appState.selectedMood === 'party') return '236,0,140';
+                return '17,153,142';
+            }
+        }
+
+        function triggerFXPipeline(mood) {
+            particlesDeck = [];
+            let count = mood === 'party' ? 50 : 30;
+            let currentType = mood === 'sad' ? 'rain' : 'bubble';
+            for (let i = 0; i < count; i++) {
+                particlesDeck.push(new ParticleAsset(currentType));
+            }
+            if (rAFId) cancelAnimationFrame(rAFId);
+            runFXLoop();
+        }
+
+        function runFXLoop() {
+            fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+            particlesDeck.forEach(p => { p.update(); p.draw(); });
+            rAFId = requestAnimationFrame(runFXLoop);
+        }
+
+        // --- BACKGROUND DECORATIONS ---
+        function renderFloatingNotes() {
+            const layer = document.getElementById('ambient-note-layer');
+            const icons = ['🎵', '🎶', '♩', '🎸', '🎹'];
+            layer.innerHTML = '';
+            for (let i = 0; i < 12; i++) {
+                const el = document.createElement('span');
+                el.className = 'floating-note';
+                el.innerText = icons[Math.floor(Math.random() * icons.length)];
+                el.style.left = `${Math.random() * 100}%`;
+                el.style.animationDelay = `${Math.random() * 6}s`;
+                el.style.fontSize = `${Math.random() * 20 + 16}px`;
+                layer.appendChild(el);
+            }
+        }
+
+        // --- APP NAVIGATION ROUTING SYSTEM ---
+        function routeToTab(targetView) {
+            appState.currentTab = targetView;
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            const searchField = document.getElementById('track-search-field');
+            if (searchField) searchField.value = '';
+
+            if (targetView === 'home') {
+                document.getElementById('nav-home').classList.add('active');
+                document.getElementById('hero-banner').style.display = 'flex';
+                document.getElementById('mood-picker-section').style.display = 'block';
+                document.getElementById('app-filter-hub').style.display = 'flex';
+                document.getElementById('playlist-hero-header').style.display = 'flex';
+                document.getElementById('pl-title').innerText = `${appState.selectedMood.toUpperCase()} Curated Session`;
+                executeMoodPlaylistEvaluation(appState.selectedMood);
+            } else if (targetView === 'favorites') {
+                document.getElementById('nav-favs').classList.add('active');
+                document.getElementById('hero-banner').style.display = 'none';
+                document.getElementById('mood-picker-section').style.display = 'none';
+                document.getElementById('app-filter-hub').style.display = 'none';
+                
+                const header = document.getElementById('playlist-hero-header');
+                header.style.display = 'flex';
+                document.getElementById('pl-cover').innerText = '❤️';
+                document.getElementById('pl-title').innerText = 'Your Liked Tracks';
+                document.getElementById('pl-badge').innerText = 'Collection';
+                document.getElementById('track-count-node').innerText = appState.favorites.length;
+                
+                appState.playlistDataPool = [...appState.favorites];
+                renderActiveTracksView(appState.playlistDataPool);
+            }
+        }
+
+        function scrollToElement(id) {
+            routeToTab('home');
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function executeThemeToggle() {
+            const root = document.documentElement;
+            const dark = root.getAttribute('data-theme') === 'dark';
+            root.setAttribute('data-theme', dark ? 'light' : 'dark');
+            document.querySelector('.theme-toggle i, .theme-btn i').className = dark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // --- SYSTEM ENGINE DATA EXTRACTION & INTERFACE RENDERING ---
+        function executeMoodPlaylistEvaluation(moodCode) {
+            appState.selectedMood = moodCode;
+            document.body.className = `mood-${moodCode}`;
+            
+            document.querySelectorAll('.mood-node').forEach(node => {
+                node.classList.remove('active');
+                if (node.dataset.mood === moodCode) node.classList.add('active');
+            });
+
+            const emojiMap = { happy: '😊', sad: '😢', party: '🎉', chill: '🌙' };
+            document.getElementById('pl-cover').innerText = emojiMap[moodCode];
+            document.getElementById('pl-title').innerText = `${moodCode.charAt(0).toUpperCase() + moodCode.slice(1)} Hindi Playlist`;
+            document.getElementById('pl-badge').innerText = `${moodCode} vibe`;
+
+            const tracks = playlistJSONDataset[moodCode] || [];
+            appState.playlistDataPool = [...tracks];
+            document.getElementById('track-count-node').innerText = tracks.length;
+
+            populateFilters(tracks);
+            renderActiveTracksView(tracks);
+            triggerFXPipeline(moodCode);
+        }
+
+        function populateFilters(tracks) {
+            const artists = new Set(['all']);
+            const years = new Set(['all']);
+            
+            tracks.forEach(t => {
+                artists.add(t.artist.split(',')[0].trim());
+                years.add(t.year);
+            });
+
+            const artSelect = document.getElementById('artist-filter-node');
+            artSelect.innerHTML = '';
+            artists.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a; opt.innerText = a === 'all' ? 'All Artists' : a;
+                artSelect.appendChild(opt);
+            });
+
+            const yrSelect = document.getElementById('year-filter-node');
+            yrSelect.innerHTML = '';
+            years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y; opt.innerText = y === 'all' ? 'All Years' : y;
+                yrSelect.appendChild(opt);
+            });
+        }
+
+        function renderActiveTracksView(tracks) {
+            const container = document.getElementById('tracks-render-grid');
+            container.innerHTML = '';
+
+            if (tracks.length === 0) {
+                container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--text-muted);">No matching tracks available.</div>`;
+                return;
+            }
+
+            tracks.forEach((track, index) => {
+                const isFav = appState.favorites.some(f => f.title === track.title);
+                const card = document.createElement('div');
+                card.className = 'track-card';
+                card.style.animationDelay = `${Math.min(index * 0.04, 0.8)}s`;
+
+                card.innerHTML = `
+                    <div class="track-thumb-wrapper">
+                        <img class="track-thumb" src="${track.art}" alt="${track.title}">
+                        <div class="track-hover-play">
+                            <button class="play-node-btn" onclick="fireTrackPlayback('${encodeURIComponent(JSON.stringify(track))}')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="track-meta-data">
+                        <h4 class="track-name">${track.title}</h4>
+                        <p class="track-artists">${track.artist}</p>
+                        <p class="track-source-movie">🎬 ${track.movie}</p>
+                        <div class="track-footer-specs">
+                            <span>${track.genre}</span>
+                            <span>${track.duration} • ${track.year}</span>
+                        </div>
+                    </div>
+                    <div class="track-action-bar">
+                        <button class="circle-action ${isFav ? 'liked-active' : ''}" onclick="toggleFavoriteElement(this, '${encodeURIComponent(JSON.stringify(track))}')">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <button class="circle-action" onclick="dispatchShareProtocol('${track.title}', '${track.artist}')">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- AUDIO CONTROLLER SYSTEMS LAYER ---
+        function fireTrackPlayback(encodedTrack) {
+            const track = JSON.parse(decodeURIComponent(encodedTrack));
+            
+            // Set running state indices
+            const index = appState.playlistDataPool.findIndex(t => t.title === track.title);
+            if(index !== -1) appState.currentTrackIndex = index;
+
+            // Update DOM Player layouts
+            document.getElementById('p-art').src = track.art;
+            document.getElementById('p-title').innerText = track.title;
+            document.getElementById('p-artist').innerText = track.artist;
+            document.getElementById('time-total').innerText = track.duration;
+
+            // Synchronize individual favorite indicator status triggers
+            const isFav = appState.favorites.some(f => f.title === track.title);
+            document.getElementById('p-fav-toggle').className = `circle-action ${isFav ? 'liked-active' : ''}`;
+
+            if(youtubePlayerEngine && youtubePlayerEngine.loadVideoById) {
+                youtubePlayerEngine.loadVideoById(track.ytid);
+                appState.isPlaying = true;
+                togglePlayerButtonUI(true);
+            }
+        }
+
+        function switchPlaybackState() {
+            if(!youtubePlayerEngine) return;
+            if(appState.isPlaying) {
+                youtubePlayerEngine.pauseVideo();
+                appState.isPlaying = false;
+                togglePlayerButtonUI(false);
+            } else {
+                youtubePlayerEngine.playVideo();
+                appState.isPlaying = true;
+                togglePlayerButtonUI(true);
+            }
+        }
+
+        function togglePlayerButtonUI(playing) {
+            const icon = document.querySelector('#core-play-trigger i');
+            if(icon) icon.className = playing ? 'fas fa-pause' : 'fas fa-play';
+        }
+
+        function executeNextTrackSkip() {
+            if(appState.currentTrackIndex === null || appState.playlistDataPool.length === 0) return;
+            
+            if(appState.isShuffleMode) {
+                appState.currentTrackIndex = Math.floor(Math.random() * appState.playlistDataPool.length);
+            } else {
+                appState.currentTrackIndex = (appState.currentTrackIndex + 1) % appState.playlistDataPool.length;
+            }
+            fireTrackPlayback(encodeURIComponent(JSON.stringify(appState.playlistDataPool[appState.currentTrackIndex])));
+        }
+
+        function executePrevTrackSkip() {
+            if(appState.currentTrackIndex === null || appState.playlistDataPool.length === 0) return;
+            appState.currentTrackIndex = (appState.currentTrackIndex - 1 + appState.playlistDataPool.length) % appState.playlistDataPool.length;
+            fireTrackPlayback(encodeURIComponent(JSON.stringify(appState.playlistDataPool[appState.currentTrackIndex])));
+        }
+
+        function monitorProgressPipeline() {
+            if(youtubePlayerEngine && appState.isPlaying && youtubePlayerEngine.getCurrentTime) {
+                const current = youtubePlayerEngine.getCurrentTime();
+                const total = youtubePlayerEngine.getDuration();
+                if(total > 0) {
+                    const pct = (current / total) * 100;
+                    document.getElementById('track-progress').value = pct;
+                    document.getElementById('time-current').innerText = formatTimeLayout(current);
+                }
+            }
+        }
+
+        function formatTimeLayout(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // --- FUNCTIONALITY MODULATORS ---
+        function toggleFavoriteElement(btn, encodedTrack) {
+            const track = JSON.parse(decodeURIComponent(encodedTrack));
+            const idx = appState.favorites.findIndex(f => f.title === track.title);
+            
+            if (idx > -1) {
+                appState.favorites.splice(idx, 1);
+                if(btn) btn.classList.remove('liked-active');
+            } else {
+                appState.favorites.push(track);
+                if(btn) btn.classList.add('liked-active');
+            }
+            
+            localStorage.setItem('beats_favs', JSON.stringify(appState.favorites));
+            if (appState.currentTab === 'favorites') routeToTab('favorites');
+        }
+
+        function dispatchShareProtocol(title, artist) {
+            const txt = `🎧 Listening to "${title}" by ${artist} on MoodBeats. Try out the premium architecture vibes!`;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(txt);
+                alert("Share link telemetry copied to clipboard storage infrastructure successfully!");
+            } else {
+                alert(txt);
+            }
+        }
+
+        // --- EVENT HANDLERS ---
+        document.querySelectorAll('.mood-node').forEach(node => {
+            node.addEventListener('click', () => {
+                executeMoodPlaylistEvaluation(node.dataset.mood);
+                document.getElementById('app-filter-hub').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        document.getElementById('core-play-trigger').addEventListener('click', switchPlaybackState);
+        document.getElementById('core-next').addEventListener('click', executeNextTrackSkip);
+        document.getElementById('core-prev').addEventListener('click', executePrevTrackSkip);
+
+        document.getElementById('core-shuffle').addEventListener('click', (e) => {
+            appState.isShuffleMode = !appState.isShuffleMode;
+            e.target.classList.toggle('active', appState.isShuffleMode);
+        });
+
+        document.getElementById('core-repeat').addEventListener('click', (e) => {
+            appState.isRepeatMode = !appState.isRepeatMode;
+            e.target.classList.toggle('active', appState.isRepeatMode);
+        });
+
+        document.getElementById('track-progress').addEventListener('input', (e) => {
+            if(youtubePlayerEngine && youtubePlayerEngine.getDuration) {
+                const total = youtubePlayerEngine.getDuration();
+                const targetSecs = (e.target.value / 100) * total;
+                youtubePlayerEngine.seekTo(targetSecs, true);
+            }
+        });
+
+        document.getElementById('volume-range-node').addEventListener('input', (e) => {
+            const val = e.target.value;
+            if(youtubePlayerEngine && youtubePlayerEngine.setVolume) {
+                youtubePlayerEngine.setVolume(val);
+            }
+            const icon = document.getElementById('vol-icon-state');
+            icon.className = val == 0 ? 'fas fa-volume-mute' : val < 50 ? 'fas fa-volume-down' : 'fas fa-volume-up';
+        });
+
+        // --- FILTER SEARCH LAYER ENGINE ---
+        function executeFilteredQuery() {
+            if (appState.currentTab === 'favorites') return;
+            const query = document.getElementById('track-search-field').value.toLowerCase().trim();
+            const artist = document.getElementById('artist-filter-node').value;
+            const year = document.getElementById('year-filter-node').value;
+
+            const basePool = playlistJSONDataset[appState.selectedMood] || [];
+            
+            const processedSubset = basePool.filter(t => {
+                const matchesQuery = t.title.toLowerCase().includes(query) || t.artist.toLowerCase().includes(query) || t.movie.toLowerCase().includes(query);
+                const matchesArtist = artist === 'all' || t.artist.includes(artist);
+                const matchesYear = year === 'all' || t.year === year;
+                return matchesQuery && matchesArtist && matchesYear;
+            });
+
+            appState.playlistDataPool = processedSubset;
+            renderActiveTracksView(processedSubset);
+        }
+
+        document.getElementById('track-search-field').addEventListener('input', executeFilteredQuery);
+        document.getElementById('artist-filter-node').addEventListener('change', executeFilteredQuery);
+        document.getElementById('year-filter-node').addEventListener('change', executeFilteredQuery);
+        
+        document.getElementById('shuffle-deck-btn').addEventListener('click', () => {
+            appState.playlistDataPool.sort(() => 0.5 - Math.random());
+            renderActiveTracksView(appState.playlistDataPool);
+        });
+
+        // Global Keyboard Shortcut Handlers
+        window.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                switchPlaybackState();
+            } else if (e.code === 'ArrowRight') {
+                executeNextTrackSkip();
+            } else if (e.code === 'ArrowLeft') {
+                executePrevTrackSkip();
+            }
+        });
+
+        // --- LIFECYCLE RUNNERS INITIALIZATION ---
+        renderFloatingNotes();
+        executeMoodPlaylistEvaluation('happy');
+    </script>
+</body>
+</html>

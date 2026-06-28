@@ -458,6 +458,7 @@
 
         // --- YT PLAYER API CORE IMPLEMENTATION ---
         let audioPlayerEngine = new Audio();
+        audioPlayerEngine.addEventListener('ended', executeNextTrackSkip); // 👈 Add this line to handle auto-playing the next track
         
         // Load YouTube Iframe API asynchronously
         const tag = document.createElement('script');
@@ -754,21 +755,24 @@
             if(icon) icon.className = playing ? 'fas fa-pause' : 'fas fa-play';
         }
 
-        function executeNextTrackSkip() {
-            if(appState.currentTrackIndex === null || appState.playlistDataPool.length === 0) return;
+        f7unction executeNextTrackSkip() {
+            if(appState.playlistDataPool.length === 0) return;
             
-            if(appState.isShuffleMode) {
+            if (appState.isShuffleActive) {
                 appState.currentTrackIndex = Math.floor(Math.random() * appState.playlistDataPool.length);
             } else {
                 appState.currentTrackIndex = (appState.currentTrackIndex + 1) % appState.playlistDataPool.length;
             }
-            fireTrackPlayback(encodeURIComponent(JSON.stringify(appState.playlistDataPool[appState.currentTrackIndex])));
+            
+            const targetTrack = appState.playlistDataPool[appState.currentTrackIndex];
+            fireTrackPlayback(encodeURIComponent(JSON.stringify(targetTrack)));
         }
-
+        
         function executePrevTrackSkip() {
-            if(appState.currentTrackIndex === null || appState.playlistDataPool.length === 0) return;
+            if(appState.playlistDataPool.length === 0) return;
             appState.currentTrackIndex = (appState.currentTrackIndex - 1 + appState.playlistDataPool.length) % appState.playlistDataPool.length;
-            fireTrackPlayback(encodeURIComponent(JSON.stringify(appState.playlistDataPool[appState.currentTrackIndex])));
+            const targetTrack = appState.playlistDataPool[appState.currentTrackIndex];
+            fireTrackPlayback(encodeURIComponent(JSON.stringify(targetTrack)));
         }
 
         function monitorProgressPipeline() {

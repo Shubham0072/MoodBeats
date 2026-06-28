@@ -755,10 +755,10 @@
             if(icon) icon.className = playing ? 'fas fa-pause' : 'fas fa-play';
         }
 
-        f7unction executeNextTrackSkip() {
+        function executeNextTrackSkip() {
             if(appState.playlistDataPool.length === 0) return;
             
-            if (appState.isShuffleActive) {
+            if (appState.isShuffleMode) {
                 appState.currentTrackIndex = Math.floor(Math.random() * appState.playlistDataPool.length);
             } else {
                 appState.currentTrackIndex = (appState.currentTrackIndex + 1) % appState.playlistDataPool.length;

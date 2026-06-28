@@ -465,19 +465,7 @@
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        function onYouTubeIframeAPIReady() {
-            youtubePlayerEngine = new YT.Player('hidden-youtube-pipeline', {
-                height: '1',
-                width: '1',
-                videoId: 'fdubeMTAcjQ', // Dummy baseline initialization track
-                playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
-                events: {
-                    'onReady': onPlayerEngineReady,
-                    'onStateChange': onPlayerEngineStateChange
-                }
-            });
-        }
-
+        
         function onPlayerEngineReady(event) {
             // Synchronize starting volume baseline configuration
             event.target.setVolume(document.getElementById('volume-range-node').value);
@@ -726,34 +714,38 @@
             // Set running state indices
             const index = appState.playlistDataPool.findIndex(t => t.title === track.title);
             if(index !== -1) appState.currentTrackIndex = index;
-
-            // Update DOM Player layouts
+        
+            // Update Player UI displays
             document.getElementById('p-art').src = track.art;
             document.getElementById('p-title').innerText = track.title;
             document.getElementById('p-artist').innerText = track.artist;
             document.getElementById('time-total').innerText = track.duration;
-
-            // Synchronize individual favorite indicator status triggers
+        
+            // Handle playlist favorite system triggers
             const isFav = appState.favorites.some(f => f.title === track.title);
             document.getElementById('p-fav-toggle').className = `circle-action ${isFav ? 'liked-active' : ''}`;
-
-            if(youtubePlayerEngine && youtubePlayerEngine.loadVideoById) {
-                youtubePlayerEngine.loadVideoById(track.ytid);
-                appState.isPlaying = true;
-                togglePlayerButtonUI(true);
-            }
+        
+            // CORE PLAYBACK: Stream the native MP3 link directly
+            audioPlayerEngine.src = track.mp3;
+            audioPlayerEngine.play()
+                .then(() => {
+                    appState.isPlaying = true;
+                    togglePlayerButtonUI(true);
+                })
+                .catch(err => console.log("Playback error: ", err));
         }
-
         function switchPlaybackState() {
-            if(!youtubePlayerEngine) return;
             if(appState.isPlaying) {
-                youtubePlayerEngine.pauseVideo();
+                audioPlayerEngine.pause(); // 👈 Pause the native MP3 stream
                 appState.isPlaying = false;
                 togglePlayerButtonUI(false);
             } else {
-                youtubePlayerEngine.playVideo();
-                appState.isPlaying = true;
-                togglePlayerButtonUI(true);
+                // Ensure there is a track assigned before playing
+                if (audioPlayerEngine.src) {
+                    audioPlayerEngine.play(); // 👈 Resume the native MP3 stream
+                    appState.isPlaying = true;
+                    togglePlayerButtonUI(true);
+                }
             }
         }
 
